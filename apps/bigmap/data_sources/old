@@ -1,0 +1,143 @@
+// ==========================================================================
+// Project:   Db1.ObsDataSource
+// Copyright: ©2010 My Company, Inc.
+// ==========================================================================
+/*globals Db1 */
+
+/** @class
+  (Document Your Data Source Here)
+  @extends SC.DataSource
+*/
+
+
+sc_require('models/maplet_model');
+Bigmap.QUERY = SC.Query.remote(Bigmap.Maplet);
+
+//Db1.SEQ_QUERY = SC.Query.remote(Db1.Sequence, { orderBy: 'guid' });
+ 
+Bigmap.mapletDataSource = SC.DataSource.extend(
+/** @scope Db1.ObsDataSource.prototype */ {
+
+  // ..........................................................
+  // QUERY SUPPORT
+  // 
+
+fetch: function(store, query) {
+	reqStr = "/data/position.json";
+	console.log ("reqStr", reqStr);
+   SC.Request.getUrl(reqStr).header({'Accept': 'application/json'}).json()
+     .notify(this, 'didFetchObs', store, query)
+     .send();
+   return YES;
+ 
+	console.log ("blat");
+  return NO;
+},
+
+
+ 
+//---------------------------------------------
+didFetchObs: function(response, store, query) {
+	
+	console.log (".. didFetchObs");
+	if (SC.ok(response)) {
+ 
+		 //Version 2, remove query
+      var storeKeys = store.loadRecords(Db1.Sequence, response.get('body').content);
+      store.loadQueryResults(query, storeKeys);
+
+		// Version 1, local query
+		//store.loadRecords(Db1.Obs, response.get('body').content);
+		//store.dataSourceDidFetchQuery(query);
+
+		// Count the number of images and set them
+		// FIXME - need to put in the counting algorithm
+/*
+		what = g_rootV.controlV.obsList.contentView.content;
+		what.forEach (function (item) {
+			base = item.get('name');
+			item.set('base', base );
+			//item.set('name', base + " (" + "66" + ")");
+		});
+*/
+
+	} else store.dataSourceDidErrorQuery(query, response);
+
+	
+},
+ 
+/*
+  fetch: function(store, query) {
+
+    // TODO: Add handlers to fetch data for specific queries.  
+    // call store.dataSourceDidFetchQuery(query) when done.
+
+    return NO ; // return YES if you handled the query
+  },
+*/
+
+  // ..........................................................
+  // RECORD SUPPORT
+  // 
+  
+//---------------------------------------------
+retrieveRecord: function(store, storeKey) {
+console.log (".. retrieveRecord");
+  if (SC.kindOf(store.recordTypeFor(storeKey), Db1.Obs)) {
+ 
+    var url = store.idFor(storeKey);
+    SC.Request.getUrl(url).header({
+                'Accept': 'application/json'
+            }).json()
+      .notify(this, 'didRetrieveObs', store, storeKey)
+      .send();
+    return YES;
+ 
+  } else return NO;
+},
+ 
+//---------------------------------------------
+didRetrieveObs: function(response, store, storeKey) {
+console.log (".. didRetrieveRecord");
+  if (SC.ok(response)) {
+    var dataHash = response.get('body').content;
+    store.dataSourceDidComplete(storeKey, dataHash);
+ 
+  } else store.dataSourceDidError(storeKey, response);
+}, 
+ 
+/*
+  retrieveRecord: function(store, storeKey) {
+    
+    // TODO: Add handlers to retrieve an individual record's contents
+    // call store.dataSourceDidComplete(storeKey) when done.
+    
+    return NO ; // return YES if you handled the storeKey
+  },
+*/
+  
+  createRecord: function(store, storeKey) {
+    
+    // TODO: Add handlers to submit new records to the data source.
+    // call store.dataSourceDidComplete(storeKey) when done.
+    
+    return NO ; // return YES if you handled the storeKey
+  },
+  
+  updateRecord: function(store, storeKey) {
+    
+    // TODO: Add handlers to submit modified record to the data source
+    // call store.dataSourceDidComplete(storeKey) when done.
+
+    return NO ; // return YES if you handled the storeKey
+  },
+  
+  destroyRecord: function(store, storeKey) {
+    
+    // TODO: Add handlers to destroy records on the data source.
+    // call store.dataSourceDidDestroy(storeKey) when done
+    
+    return NO ; // return YES if you handled the storeKey
+  }
+  
+}) ;
