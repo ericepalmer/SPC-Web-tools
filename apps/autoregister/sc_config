@@ -1,0 +1,7 @@
+var Autoregister = BT.AppBuilder.create({
+  name: 'Autoregister',
+  path: dirname(),
+  title: 'Autoregister',
+  frameworks: [],
+  languages: ['en']
+});

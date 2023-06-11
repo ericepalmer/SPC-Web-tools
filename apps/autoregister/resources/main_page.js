@@ -55,27 +55,37 @@ init: function () {
 },
   // Override this to draw on the canvas.
 draw: function(context, height, width) {
-	width = Autoregister.mainPage.mainPane.imgView.image.naturalWidth;
-	currCol = Math.floor(Autoregister.mainPage.mainPane.imgView.image.naturalWidth/100);
-	currCol = 10;
-	holdContext.clearRect(0.0, 0.0, 2000, 2000);
+	width 
+    = Autoregister.mainPage.mainPane.imgScrollV.contentView.mainImgView.image.naturalWidth;
+	height 
+    = Autoregister.mainPage.mainPane.imgScrollV.contentView.mainImgView.image.naturalHeight;
 
-	//scale = 1200/currCol; // Needed for normal lithos and register
+	if (width < 1100) {		// image is unset
+		width = 1100;
+		height = 500;
+	}//if
+
+	holdContext.clearRect(0.0, 0.0, width, height);
+
 	scale = 100;
-	offsetX = 10;
-	offsetY = 50;
+	offsetX = 0;
+	offsetY = 0;
 
 	// Show numbers
+	numRows = height/100;
+	currCol = 10;
 	if (Autoregister.mainPage.mainPane.numberB.value) {
 		start =0;
-		for (row=0; row<10; row++)  
+		for (row=0; row<numRows; row++)  
 			for (col=0; col<currCol; col++) {
 				start++;
 				numStr = " " + start;
 				holdContext.fillStyle = 'black';		// template
-				holdContext.fillRect (col*scale+20, row*scale*2+60-10, 16, 14);
+				holdContext.fillRect (col*scale+0, row*scale*2+10-10, 16, 14);
+				//holdContext.fillRect (col*scale+20, row*scale*2+60-10, 16, 14);
 				holdContext.fillStyle = 'yellow';		// template
-				holdContext.fillText (numStr, col*scale+20, row*scale*2+60);
+				holdContext.fillText (numStr, col*scale+0, row*scale*2+10);
+				//holdContext.fillText (numStr, col*scale+20, row*scale*2+60);
 			}//for col
 	}//if
 
@@ -137,12 +147,14 @@ mouseDragged: function(evt) {
 	return YES;
 },
 
+/*
 //----------------------------------
   // The original height that the draw commands are based on.
-  sourceHeight: 0,
+  sourceHeight: 2000,
 
   // The original width that the draw commands are based on.
-  sourceWidth: 0,
+  sourceWidth: 2000,
+*/
 
 //----------------------------------
   render: function(context, firstTime) {
@@ -183,7 +195,7 @@ mouseDragged: function(evt) {
 
       context.save();
 		context.fillStyle = 'red';
-      context.scale(resolution * (width / sourceWidth), resolution * (height / sourceHeight));
+      //context.scale(resolution * (width / sourceWidth), resolution * (height / sourceHeight));
       context.clearRect(0.0, 0.0, width, height);
       this.draw(context, sourceHeight, sourceWidth);
       context.restore();
@@ -257,7 +269,8 @@ Autoregister.mainPage = SC.Page.design({
   // Add childViews to this pane for views to display immediately on page
   // load.
   mainPane: SC.MainPane.design({
-    childViews: ['imgView', 'howFarView', 'xyView', 'labelView', 'drawingView', 'numberB', 'reloadB', 'imgName'],
+    childViews: ['howFarView', 'xyView', 'labelView', 'imgScrollV', 'numberB', 'reloadB', 'imgName'],
+    //childViews: ['imgView', 'howFarView', 'xyView', 'labelView', 'drawingView', 'numberB', 'reloadB', 'imgName'],
 
     labelView: SC.LabelView.design({
       classNames: ['welcome-label'],
@@ -313,7 +326,44 @@ Autoregister.mainPage = SC.Page.design({
 		value: "1",
   	}),
 
+// New (June 11 2023) Scrolling view, pulled from SBIB
+// Main map window
+   imgScrollV:  SC.ScrollView.design({
+      layout: { left: 5, top: 50, right: 5, bottom: 5, minHeight: 500 },
+      contentView: SC.View.design({
+			backgroundColor: "LightGrey",
+         layout: {top:0, height: 2000, left: 0, width:1100 },
+         childViews: 'mainImgView drawingView '.w(),
 
+
+			/////////////// Main Image View - holds the set of many images
+         mainImgView: SC.ImageView.design({
+				value: "http://ormacsrv1.lpl.arizona.edu/data/autoregister.jpg",
+
+					didLoad: function(image) {
+   					imgObj = Autoregister.mainPage.mainPane.imgView ;
+   					h = image.naturalHeight;
+   					w = image.naturalWidth;
+   					layout = {height: h, width: w, top: 0, left: 0};
+   					//layout = {height: h, width: w, top: 50, left: 10};
+   					imgObj.set ('layout', layout);
+						sc_super() ;
+						console.log ("did Load-sub", layout);
+   					return YES;
+					},//didload
+
+         }),//mainimgview
+
+
+			/////////////// Handeles the clicks and drags
+         drawingView: Autoregister.CanvasView.design({
+         })//drawingview
+      })//contentview
+   }),//imgview
+
+
+// Old stuff
+/*
     //imgView: Autoregister.ImgView.design({
     imgView: SC.ImageView.design({
       layout: { top: 50, left: 10, height:1200, width:1200},
@@ -337,6 +387,7 @@ Autoregister.mainPage = SC.Page.design({
 
 	drawingView: Autoregister.CanvasView.design({
 	})//drawingview
+*/
 
 
 
