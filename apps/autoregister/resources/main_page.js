@@ -10,7 +10,7 @@ Autoregister.ImgView = SC.ImageView.extend({
       layout: { top: 50, left: 10, height:1200, width:1200},
       value: "This is my test",
 		backgroundColor: "White",
-		value: "http://ormacsrv1.lpl.arizona.edu/data/autoregister.jpg",
+		value: "http://localhost/data/autoregister.jpg",
 //---------------------------------
 didLoad: function(image) {
    console.log ("didLoad-sub");
@@ -57,10 +57,14 @@ init: function () {
 draw: function(context, height, width) {
 	width 
     = Autoregister.mainPage.mainPane.imgScrollV.contentView.mainImgView.image.naturalWidth;
-	height 
-    = Autoregister.mainPage.mainPane.imgScrollV.contentView.mainImgView.image.naturalHeight;
+	//height 
+    //= Autoregister.mainPage.mainPane.imgScrollV.contentView.mainImgView.image.naturalHeight;
+	layout = Autoregister.mainPage.mainPane.imgScrollV.contentView.get ('layout')
+	height = layout.height
+	width = layout.width
 
 	if (width < 1100) {		// image is unset
+		console.log ("Panic:  width: ", width)
 		width = 1100;
 		height = 500;
 	}//if
@@ -72,8 +76,9 @@ draw: function(context, height, width) {
 	offsetY = 0;
 
 	// Show numbers
-	numRows = height/100;
+	numRows = height/200;
 	currCol = 10;
+
 	if (Autoregister.mainPage.mainPane.numberB.value) {
 		start =0;
 		for (row=0; row<numRows; row++)  
@@ -212,8 +217,8 @@ mouseDown: function(evt) {
 	this.downX = x;
 	this.downY = y;
 
-	offsetX = 10;
-	offsetY = 50;
+	offsetX = 0;
+	offsetY = 0;
 
 	col = Math.floor ((this.startX-offsetX)/100);
 	row = Math.floor ((this.startY-offsetY)/200);
@@ -260,6 +265,18 @@ mouseUp: function(evt) {
 
 },//mouseup
 
+//---------------------------
+keyDown: function(evt) {
+   console.log (evt.which);
+   var refresh = false;
+   if (evt.which == 114) refresh = true;
+   if (evt.which == 82) refresh = true;
+   if (evt.which == 32) refresh = true;
+   if (refresh) Autoregister.imageC.reloadE();
+   return refresh;
+ },//keydown
+
+
 });
 
 // This page describes the main user interface for your application.
@@ -301,13 +318,13 @@ Autoregister.mainPage = SC.Page.design({
 
 	xyView: SC.LabelView.design({
       layout: { top: 10, left: 300, width: 100, height: 40 },
-      valueBinding: "Autoregister.mainPage.mainPane.drawingView.xyStr",
+      valueBinding: "Autoregister.mainPage.mainPane.imgScrollV.contentView.drawingView.xyStr",
     }),
 
 	howFarView: SC.LabelView.design({
       classNames: ['welcome-label'],
-      layout: { top: 10, left: 400, width: 300, height: 24 },
-      valueBinding: "Autoregister.mainPage.mainPane.drawingView.moveStr",
+      layout: { top: 10, left: 400, width: 300, height: 40 },
+      valueBinding: "Autoregister.mainPage.mainPane.imgScrollV.contentView.drawingView.moveStr",
 		backgroundColor: "White",
     }),
 
@@ -316,14 +333,7 @@ Autoregister.mainPage = SC.Page.design({
     	title: "Numbers",
     	target: "Autoregister.imageC",
     	action: "numberE",
-		value: "0",
-  	}),
-  	centerB: SC.CheckboxView.design({
-    	layout: { top: 10, left: 620, width: 100, height: 24 },
-    	title: "Center",
-    	target: "Autoregister.imageC",
-    	action: "centerE",
-		value: "1",
+		value: true,
   	}),
 
 // New (June 11 2023) Scrolling view, pulled from SBIB
@@ -332,23 +342,30 @@ Autoregister.mainPage = SC.Page.design({
       layout: { left: 5, top: 50, right: 5, bottom: 5, minHeight: 500 },
       contentView: SC.View.design({
 			backgroundColor: "LightGrey",
-         layout: {top:0, height: 2000, left: 0, width:1100 },
+         layout: {top:0, height: 10000, left: 0, width:1100 },
          childViews: 'mainImgView drawingView '.w(),
 
 
 			/////////////// Main Image View - holds the set of many images
          mainImgView: SC.ImageView.design({
-				value: "http://ormacsrv1.lpl.arizona.edu/data/autoregister.jpg",
+				value: "http://localhost/data/autoregister.jpg",
 
 					didLoad: function(image) {
-   					imgObj = Autoregister.mainPage.mainPane.imgView ;
+   					imgObj = Autoregister.mainPage.mainPane.imgScrollV.contentView.mainImgView ;
    					h = image.naturalHeight;
    					w = image.naturalWidth;
    					layout = {height: h, width: w, top: 0, left: 0};
    					//layout = {height: h, width: w, top: 50, left: 10};
-   					imgObj.set ('layout', layout);
+   					//imgObj.set ('layout', layout);
+						//imgFrame = Autoregister.mainPage.mainPane.imgScrollV.contentView.drawingView;
+   					//imgFrame.set ('layout', layout);
+
+						imgFrame = Autoregister.mainPage.mainPane.imgScrollV.contentView;
+   					imgFrame.set ('layout', layout);
+
+						drawFrame = Autoregister.mainPage.mainPane.imgScrollV.contentView.drawingView;
+						drawFrame.draw() 	// eep check this, I just added it for better flow control
 						sc_super() ;
-						console.log ("did Load-sub", layout);
    					return YES;
 					},//didload
 
@@ -357,38 +374,10 @@ Autoregister.mainPage = SC.Page.design({
 
 			/////////////// Handeles the clicks and drags
          drawingView: Autoregister.CanvasView.design({
+      		acceptsFirstResponder: YES  // eep
          })//drawingview
       })//contentview
    }),//imgview
-
-
-// Old stuff
-/*
-    //imgView: Autoregister.ImgView.design({
-    imgView: SC.ImageView.design({
-      layout: { top: 50, left: 10, height:1200, width:1200},
-      value: "This is my test",
-		backgroundColor: "White",
-		value: "http://ormacsrv1.lpl.arizona.edu/data/autoregister.jpg",
-		//#valueBinding: "Autoregister.imageC.imageName",
-
-		didLoad: function(image) {
-   		imgObj = Autoregister.mainPage.mainPane.imgView ;
-   		h = image.naturalHeight;
-   		w = image.naturalWidth;
-   		layout = {height: h, width: w, top: 50, left: 10};
-   		imgObj.set ('layout', layout);
-			sc_super() ;
-			console.log ("did Load-sub", layout);
-   		return YES;
-		},
-
-	  }),
-
-	drawingView: Autoregister.CanvasView.design({
-	})//drawingview
-*/
-
 
 
   })

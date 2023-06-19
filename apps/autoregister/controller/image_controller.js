@@ -14,7 +14,7 @@ Autoregister.imageC = SC.Controller.create(
 /** @scope Db1.inst.prototype */ {
 
 imageName: "/data/autoregister.jpg",
-//num: 1,
+num: 1,
 showNumbers: 0,
 //rows: 6,
 
@@ -23,11 +23,12 @@ reloadE: function () {
 console.log ("reloading");
 	this.num++;
 	imgStr = "/data/" + "autoregister.jpg?vers=" + this.num;
-	imgObj = Autoregister.mainPage.mainPane.imgView ;
+	imgObj = Autoregister.mainPage.mainPane.imgScrollV.contentView.mainImgView ;
+
 	imgObj.set ('value', imgStr);
 	Autoregister.imageC.set ('imageName', imgStr);
 
-	Autoregister.mainPage.mainPane.imgScrollV.contentView.drawingView.draw()
+	//Autoregister.mainPage.mainPane.imgScrollV.contentView.drawingView.draw()
 
 },
 
